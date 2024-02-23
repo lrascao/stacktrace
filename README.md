@@ -1,7 +1,4 @@
-# Stacktrace [![Circle CI](https://img.shields.io/circleci/project/palantir/stacktrace/master.svg?label=circleci)](https://circleci.com/gh/palantir/stacktrace) [![Travis CI](https://img.shields.io/travis/palantir/stacktrace/master.svg?label=travis)](https://travis-ci.org/palantir/stacktrace)
-
-Look at Palantir, such a Java shop. I can't believe they want stack traces in
-their Go code.
+# Stacktrace 
 
 ### Why would anyone want stack traces in Go code?
 
@@ -198,5 +195,4 @@ We welcome contributions of backward-compatible changes to this library.
 - Write your code
 - Add tests for new functionality
 - Run `go test` and verify that the tests pass
-- Fill out the [Individual](https://github.com/palantir/stacktrace/blob/master/Palantir_Individual_Contributor_License_Agreement.pdf?raw=true) or [Corporate](https://github.com/palantir/stacktrace/blob/master/Palantir_Corporate_Contributor_License_Agreement.pdf?raw=true) Contributor License Agreement and send it to [opensource@palantir.com](mailto:opensource@palantir.com)
 - Submit a pull request
