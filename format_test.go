@@ -19,16 +19,22 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"runtime"
+	"strings"
+	"path/filepath"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/palantir/stacktrace"
+	"github.com/lrascao/stacktrace"
+	"github.com/lrascao/stacktrace/cleanpath"
 )
 
 func TestFormat(t *testing.T) {
 	plainErr := errors.New("plain")
+
+	_, filename, _, _ := runtime.Caller(0)
+	cleanpath.GoPath = filepath.Dir(filename)
 	stacktraceErr := stacktrace.Propagate(plainErr, "decorated")
-	digits := regexp.MustCompile(`\d`)
 
 	for _, test := range []struct {
 		format             stacktrace.Format
@@ -40,19 +46,19 @@ func TestFormat(t *testing.T) {
 			format:             stacktrace.FormatFull,
 			specifier:          "%v",
 			expectedPlain:      "plain",
-			expectedStacktrace: "decorated\n --- at github.com/palantir/stacktrace/format_test.go:## (TestFormat) ---\nCaused by: plain",
+			expectedStacktrace: "decorated\n --- at %s/format_test.go:## (TestFormat) ---\nCaused by: plain",
 		},
 		{
 			format:             stacktrace.FormatFull,
 			specifier:          "%q",
 			expectedPlain:      "\"plain\"",
-			expectedStacktrace: "\"decorated\\n --- at github.com/palantir/stacktrace/format_test.go:## (TestFormat) ---\\nCaused by: plain\"",
+			expectedStacktrace: "\"decorated\\n --- at %s/format_test.go:## (TestFormat) ---\\nCaused by: plain\"",
 		},
 		{
 			format:             stacktrace.FormatFull,
 			specifier:          "%105s",
 			expectedPlain:      "                                                                                                    plain",
-			expectedStacktrace: "     decorated\n --- at github.com/palantir/stacktrace/format_test.go:## (TestFormat) ---\nCaused by: plain",
+			expectedStacktrace: "decorated\n --- at %s/format_test.go:## (TestFormat) ---\nCaused by: plain",
 		},
 		{
 			format:             stacktrace.FormatFull,
@@ -82,7 +88,7 @@ func TestFormat(t *testing.T) {
 			format:             stacktrace.FormatBrief,
 			specifier:          "%+s",
 			expectedPlain:      "plain",
-			expectedStacktrace: "decorated\n --- at github.com/palantir/stacktrace/format_test.go:## (TestFormat) ---\nCaused by: plain",
+			expectedStacktrace: "decorated\n --- at %s/format_test.go:## (TestFormat) ---\nCaused by: plain",
 		},
 	} {
 		stacktrace.DefaultFormat = test.format
@@ -91,7 +97,14 @@ func TestFormat(t *testing.T) {
 		assert.Equal(t, test.expectedPlain, actualPlain)
 
 		actualStacktrace := fmt.Sprintf(test.specifier, stacktraceErr)
+
+		expectedStacktrace := test.expectedStacktrace
+		if strings.Count(test.expectedStacktrace, "%s") > 0 {
+			expectedStacktrace = fmt.Sprintf(test.expectedStacktrace, cleanpath.GoPath)
+		}
+
+		digits := regexp.MustCompile(`\d`)
 		actualStacktrace = digits.ReplaceAllString(actualStacktrace, "#")
-		assert.Equal(t, test.expectedStacktrace, actualStacktrace)
+		assert.Equal(t, expectedStacktrace, actualStacktrace)
 	}
 }

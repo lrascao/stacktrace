@@ -1,14 +1,13 @@
 package cleanpath_test
 
 import (
-	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/palantir/stacktrace/cleanpath"
+	"github.com/lrascao/stacktrace/cleanpath"
 )
 
 func TestRemoveGoPath(t *testing.T) {
@@ -48,9 +47,7 @@ func TestRemoveGoPath(t *testing.T) {
 			expected: "pkg/prog.go",
 		},
 	} {
-		gopath := strings.Join(testcase.gopath, string(filepath.ListSeparator))
-		err := os.Setenv("GOPATH", gopath)
-		assert.NoError(t, err, "error setting gopath")
+		cleanpath.GoPath = strings.Join(testcase.gopath, string(filepath.ListSeparator))
 
 		cleaned := cleanpath.RemoveGoPath(testcase.path)
 		assert.Equal(t, testcase.expected, cleaned, "testcase: %+v", testcase)
