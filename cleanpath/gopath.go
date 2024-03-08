@@ -7,6 +7,12 @@ import (
 	"strings"
 )
 
+var GoPath string
+
+func init() {
+	GoPath = os.Getenv("GOPATH")
+}
+
 /*
 RemoveGoPath makes a path relative to one of the src directories in the $GOPATH
 environment variable. If $GOPATH is empty or the input path is not contained
@@ -15,11 +21,11 @@ the input path is contained within multiple of the src directories in $GOPATH,
 it is made relative to the longest one of them.
 */
 func RemoveGoPath(path string) string {
-	dirs := filepath.SplitList(os.Getenv("GOPATH"))
+	dirs := filepath.SplitList(GoPath)
 	// Sort in decreasing order by length so the longest matching prefix is removed
 	sort.Stable(longestFirst(dirs))
 	for _, dir := range dirs {
-		srcdir := filepath.Join(dir, "src")
+		srcdir := filepath.Join(dir, "pkg", "mod")
 		rel, err := filepath.Rel(srcdir, path)
 		// filepath.Rel can traverse parent directories, don't want those
 		if err == nil && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {

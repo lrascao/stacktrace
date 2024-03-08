@@ -19,13 +19,19 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"runtime"
+	"path/filepath"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/palantir/stacktrace"
+	"github.com/lrascao/stacktrace"
+	"github.com/lrascao/stacktrace/cleanpath"
 )
 
 func TestMessage(t *testing.T) {
+	_, filename, _, _ := runtime.Caller(0)
+	cleanpath.GoPath = filepath.Dir(filename)
+
 	err := startDoing()
 	err = PublicObj{}.DoPublic(err)
 	err = PublicObj{}.doPrivate(err)
@@ -36,16 +42,24 @@ func TestMessage(t *testing.T) {
 
 	expected := strings.Join([]string{
 		"so closed",
-		" --- at github.com/palantir/stacktrace/functions_for_test.go:51 (doClosure.func1) ---",
+		" --- at %s/functions_for_test.go:51 (doClosure.func1) ---",
 		"Caused by: pointedly",
-		" --- at github.com/palantir/stacktrace/functions_for_test.go:46 (ptrObj.doPtr) ---",
-		" --- at github.com/palantir/stacktrace/functions_for_test.go:42 (privateObj.doPrivate) ---",
-		" --- at github.com/palantir/stacktrace/functions_for_test.go:38 (privateObj.DoPublic) ---",
-		" --- at github.com/palantir/stacktrace/functions_for_test.go:34 (PublicObj.doPrivate) ---",
-		" --- at github.com/palantir/stacktrace/functions_for_test.go:30 (PublicObj.DoPublic) ---",
+		" --- at %s/functions_for_test.go:46 (ptrObj.doPtr) ---",
+		" --- at %s/functions_for_test.go:42 (privateObj.doPrivate) ---",
+		" --- at %s/functions_for_test.go:38 (privateObj.DoPublic) ---",
+		" --- at %s/functions_for_test.go:34 (PublicObj.doPrivate) ---",
+		" --- at %s/functions_for_test.go:30 (PublicObj.DoPublic) ---",
 		"Caused by: failed to start doing",
-		" --- at github.com/palantir/stacktrace/functions_for_test.go:26 (startDoing) ---",
+		" --- at %s/functions_for_test.go:26 (startDoing) ---",
 	}, "\n")
+	expected = fmt.Sprintf(expected,
+		cleanpath.GoPath,
+		cleanpath.GoPath,
+		cleanpath.GoPath,
+		cleanpath.GoPath,
+		cleanpath.GoPath,
+		cleanpath.GoPath,
+		cleanpath.GoPath)
 	stacktrace.DefaultFormat = stacktrace.FormatFull
 	assert.Equal(t, expected, err.Error())
 	assert.Equal(t, expected, fmt.Sprint(err))
