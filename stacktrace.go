@@ -81,10 +81,18 @@ included in an error, msg can be an empty string:
 If cause is nil, Propagate returns nil. This allows elision of some "if err !=
 nil" checks.
 */
-func Propagate(cause error, msg string, vals ...interface{}) error {
+func Propagate(cause error, vals ...interface{}) error {
 	if cause == nil {
 		// Allow calling Propagate without checking whether there is error
 		return nil
+	}
+
+	var msg string
+	if len(vals) > 0 {
+		if s, ok := vals[0].(string); ok {
+			msg = s
+			vals = vals[1:]
+		}
 	}
 	return create(cause, NoCode, msg, vals...)
 }
